@@ -1,0 +1,14 @@
+<changeSet id="1" author="you">
+    <createTable tableName="wallet">
+        <column name="id" type="uuid">
+            <constraints primaryKey="true"/>
+        </column>
+        <column name="balance" type="numeric(19,2)" defaultValueNumeric="0"/>
+        <column name="version" type="bigint" defaultValueNumeric="0"/>
+    </createTable>
+
+    <addCheckConstraint
+            tableName="wallet"
+            constraintName="chk_positive_balance"
+            constraintBody="balance >= 0"/>
+</changeSet>
