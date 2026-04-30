@@ -1,14 +1,28 @@
-<changeSet id="1" author="you">
-    <createTable tableName="wallet">
-        <column name="id" type="uuid">
-            <constraints primaryKey="true"/>
-        </column>
-        <column name="balance" type="numeric(19,2)" defaultValueNumeric="0"/>
-        <column name="version" type="bigint" defaultValueNumeric="0"/>
-    </createTable>
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
 
-    <addCheckConstraint
-            tableName="wallet"
-            constraintName="chk_positive_balance"
-            constraintBody="balance >= 0"/>
-</changeSet>
+    <changeSet id="1" author="your_name">
+
+        <createTable tableName="wallet">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="balance" type="numeric(19,2)" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <sql>
+            ALTER TABLE wallet
+            ADD CONSTRAINT chk_positive_balance CHECK (balance >= 0)
+        </sql>
+
+    </changeSet>
+
+</databaseChangeLog>

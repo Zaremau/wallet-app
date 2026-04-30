@@ -16,19 +16,19 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/wallet")
+@RequestMapping("/api/v1")
 @RequiredArgsConstructor
 public class WalletController {
 
     private final WalletService service;
 
-    @PostMapping
+    @PostMapping("/wallet")
     public ResponseEntity<Void> process(@RequestBody @Valid WalletRequest request) {
         service.process(request);
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/wallets/{id}")
     public ResponseEntity<BigDecimal> balance(@PathVariable UUID id) {
         return ResponseEntity.ok(service.getBalance(id));
     }
