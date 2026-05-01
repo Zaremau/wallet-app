@@ -9,6 +9,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.Rollback;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
@@ -22,6 +23,7 @@ import java.math.BigDecimal;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -31,6 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Testcontainers
 @SpringBootTest
 @AutoConfigureMockMvc
+@ActiveProfiles("test")
 class WalletAppApplicationTests {
 
     @Container
@@ -62,7 +65,7 @@ class WalletAppApplicationTests {
 
 		Wallet wallet = new Wallet();
 		wallet.setBalance(new BigDecimal("200.00"));
-		walletRepository.save(wallet);
+		walletRepository.saveAndFlush(wallet);
 
 		mockMvc.perform(post("/api/v1/wallet")
 						.contentType(MediaType.APPLICATION_JSON)
@@ -80,7 +83,7 @@ class WalletAppApplicationTests {
 	void withdraw_shouldWithdrawAmountFromBalance() throws Exception{
 		Wallet wallet = new Wallet();
 		wallet.setBalance(new BigDecimal("200.00"));
-		walletRepository.save(wallet);
+		walletRepository.saveAndFlush(wallet);
 
 		mockMvc.perform(post("/api/v1/wallet")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -98,7 +101,7 @@ class WalletAppApplicationTests {
 	void withdraw_insufficientFunds_shouldThrowInsufficientFundsException() throws Exception{
 		Wallet wallet = new Wallet();
 		wallet.setBalance(new BigDecimal("200.00"));
-		walletRepository.save(wallet);
+		walletRepository.saveAndFlush(wallet);
 
 		mockMvc.perform(post("/api/v1/wallet")
 						.contentType(MediaType.APPLICATION_JSON)
@@ -135,7 +138,7 @@ class WalletAppApplicationTests {
 	void withdraw_invalidJson_shouldThrowJsonException() throws Exception{
 		Wallet wallet = new Wallet();
 		wallet.setBalance(new BigDecimal("200.00"));
-		walletRepository.save(wallet);
+		walletRepository.saveAndFlush(wallet);
 
 		mockMvc.perform(post("/api/v1/wallet")
 						.contentType(MediaType.APPLICATION_JSON)
@@ -154,7 +157,7 @@ class WalletAppApplicationTests {
 	void getBalance_shouldReturnWalletBalance() throws Exception{
 		Wallet wallet = new Wallet();
 		wallet.setBalance(new BigDecimal("200.00"));
-		walletRepository.save(wallet);
+		walletRepository.saveAndFlush(wallet);
 
 		mockMvc.perform(get("/api/v1/wallets/{id}", wallet.getId()))
 				.andExpect(status().isOk())
@@ -174,15 +177,16 @@ class WalletAppApplicationTests {
 	void concurrentWithdrawals_shouldHandleBalanceCorrectly() throws InterruptedException {
 		Wallet wallet = new Wallet();
 		wallet.setBalance(new BigDecimal("1000.00"));
-		walletRepository.save(wallet);
+		walletRepository.saveAndFlush(wallet);
 
-		int numberOfThreads = 10;
-		BigDecimal withdrawAmount = new BigDecimal("100.00");
+        int totalRequests = 1000;
+		int numberOfThreads = 50;
+		BigDecimal withdrawAmount = new BigDecimal("1.00");
 
 		ExecutorService executorService = Executors.newFixedThreadPool(numberOfThreads);
-		CountDownLatch latch = new CountDownLatch(numberOfThreads);
+		CountDownLatch latch = new CountDownLatch(totalRequests);
 
-		for (int i = 0; i < numberOfThreads; i++) {
+		for (int i = 0; i < totalRequests; i++) {
 			executorService.execute(() -> {
 				try {
 					mockMvc.perform(post("/api/v1/wallet")
@@ -203,7 +207,7 @@ class WalletAppApplicationTests {
 			});
 		}
 
-		latch.await();
+		latch.await(30, TimeUnit.SECONDS);
 		executorService.shutdown();
 
 		Wallet updatedWallet = walletRepository.findById(wallet.getId()).orElseThrow();

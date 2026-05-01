@@ -6,23 +6,7 @@
             http://www.liquibase.org/xml/ns/dbchangelog
             http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
 
-    <changeSet id="1" author="your_name">
-
-        <createTable tableName="wallet">
-            <column name="id" type="UUID">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-
-            <column name="balance" type="numeric(19,2)" defaultValueNumeric="0">
-                <constraints nullable="false"/>
-            </column>
-        </createTable>
-
-        <sql>
-            ALTER TABLE wallet
-            ADD CONSTRAINT chk_positive_balance CHECK (balance >= 0)
-        </sql>
-
-    </changeSet>
+    <include file="db/changelog/01-create-wallet-table.xml"/>
+    <include file="db/changelog/02-seed-wallets.xml"/>
 
 </databaseChangeLog>

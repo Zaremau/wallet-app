@@ -21,3 +21,9 @@ spring:
         format_sql: true
 server:
   port: 8087
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    operations-sorter: alpha
